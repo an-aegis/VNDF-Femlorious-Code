@@ -10,64 +10,14 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 
 import discord
 from discord.ext import commands
-from VNDFHelper import *
+from VNDFHelper import get_role
+from VNDFRank import rank
 
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 
-bot = commands.Bot(command_prefix="!BANNANAR", intents=intents) # the prefix is silly because my IDE generates warnings if its set to None
-
-class rank:
-    def __init__(self, who = None, roles = None, rankval = "", __rankname = ""):
-        self.who:discord.Member = who # discord member object
-        self.roles:list = roles
-        self.rankval:str = rankval
-        self.rankname:str = __rankname
-        self.displayname:str|None = ""
-        
-        if self.who != None:
-            self.displayname = self.who.nick
-        
-        if self.rankval == "":
-            if self.roles == None:
-                self.roles = self.who.roles
-            
-            self.rankval = hunt_for_rankval(self.roles)
-            # error generating function is intended to create unhandled exceptions in this class
-            # this is so the caller can handle this exception
-        
-        self.rankname = findname(self.rankval)
-    
-    def promo_calc(self, by:int, limit:int) -> int:
-        """
-returns int or generates error
-
-will return int id of the new rank, if it is unable to do this (if rank exceeds the limit),
-will raise an error
-"""
-
-        ranklist = list(rankval_id)
-        
-        newrank_index = ranklist.index(self.rankval)+by
-        
-        if newrank_index < limit:
-            newrankval = ranklist[newrank_index] # find new rankval
-            return rankval_id[newrankval]
-        else:
-            raise IndexError("The rank you are trying to promote to is above your authority level or is impossible")
-    
-    async def promote(self,by:int, limit:int):
-        old = await get_role(self.who, rankval_id[self.rankval])
-        
-        new_id = self.promo_calc(by,limit)
-        # error generating function is intended to create unhandled exceptions in this class
-        # this is so the caller can handle this exception
-        # exception also serves to protect from disalowed promotion cases
-        
-        await self.who.add_roles(await get_role(self.who, new_id))
-        await self.who.remove_roles(old) # prevent removal without assignment first
-        
+bot = commands.Bot(command_prefix="!BANNANAR", intents=intents) # silly prefix to stop debug warnings       
 
 @bot.tree.command(name = "promote", description = "promote a user by N ranks")
 async def promote(interaction: discord.Interaction, who:discord.Member, by:int):
@@ -95,16 +45,19 @@ async def promote(interaction: discord.Interaction, who:discord.Member, by:int):
         await interaction.response.send_message("You can't promote yourself", ephemeral=True)
         return
     
-    target = bot.get_channel(1534948751213330542) # sorry about the magical number
+    target = bot.get_channel(1535298462583750746) # sorry about the magical number
     try:
-        await rank(who).promote(by, limit)
+        human = rank(who)
+        await human.promote(by, limit)
         await interaction.response.send_message(f"{who.nick} promoted by {by} ranks", ephemeral=True)
         
-        await target.send(f"<@{who.id}> was {'promoted' if by > 0 else 'demoted'} by {abs(by)} ranks\nPromoter: <@{interaction.user.id}>")
+        #await target.send(f"<@{who.id}> was {'promoted' if by > 0 else 'demoted'} by {abs(by)} rank{'s' if by != 1 else ''} (to {human.rankval})\nPromoter: <@{interaction.user.id}>")
+        await target.send(f"<@{who.id}> was promoted to {human.rankval} (from {human.old_rankval}) by <@{interaction.user.id}>")
         
     except Exception as e:
         await interaction.response.send_message(f"Error: `{e}`", ephemeral=True)
         await target.send(f"<@{who.id}> had a failed promotion/demotion from user <@{interaction.user.id}>\nError: `{e}`")
+
 
 @bot.event
 async def on_ready():

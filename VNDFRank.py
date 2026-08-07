@@ -1,6 +1,8 @@
 # VNDFRank.py
+# V0.6
+
 import discord
-from VNDFHelper import rankval_id, c_rankval_id, findname, get_role, hunt_for_rankval
+from VNDFHelper import rankval_id, c_rankval_id, findname, get_role, hunt_for_rankval, findc_rank
 
 class rank:
     def __init__(self, who = None, roles = None, rankval = "", __rankname = ""):
@@ -29,22 +31,17 @@ class rank:
         ranklist = list(rankval_id)
         
         newrank_index = ranklist.index(self.rankval)+by
+        if newrank_index < 0:
+            class FuckYouError(Exception):
+                pass
+            raise FuckYouError("No, you cant make somebody have a negative rank")
         
         if newrank_index < limit:
             newrankval = ranklist[newrank_index] # find new rankval
-            
-            if newrank_index < 5:
-                new_c_rank = "C0"
-            elif newrank_index in range(5,8):
-                new_c_rank = "C1"
-            elif newrank_index in range(8,13):
-                new_c_rank = "C2"
-            elif newrank_index in range(13,17):
-                new_c_rank = "C3"
-            elif newrank_index in range(17,21):
-                new_c_rank = "C4"
             self.rankval = newrankval
-            return [rankval_id[newrankval],new_c_rank] # [new rankval, new c_rankval]
+            
+            new_c_rank = findc_rank(newrankval)
+            return [newrankval,new_c_rank] # [new rankval, new c_rankval]
         else:
             raise IndexError("The rank you are trying to promote to is above your authority level or is impossible")
     
@@ -56,19 +53,22 @@ class rank:
         # this is so the caller can handle this exception
         # exception also serves to protect from disalowed promotion cases
         calculated = self.promo_calc(by,limit)
-        new_id = calculated[0]
+        new_id = rankval_id[calculated[0]]
         
         c_rankval = calculated[1]
-        c_rank_obj = await get_role(self.who, c_rankval_id[c_rankval])
+        try:
+            c_rank_obj = await get_role(self.who, c_rankval_id[c_rankval])
+            new_c_rank = True
+        except KeyError: # key error occurs when findc_rank returns "", meaning the person is a recruit (no c rank)
+            c_rank_obj = None
+            new_c_rank = False
         
         if c_rank_obj not in self.roles:
-            await self.who.add_roles(c_rank_obj)
-            c_rank_list = list(c_rankval_id)
+            if new_c_rank:
+                await self.who.add_roles(c_rank_obj)
+            
             try:
-                subtract = 1 if by>0 else -1
-                await self.who.remove_roles(await get_role(self.who,c_rankval_id[c_rank_list[c_rank_list.index(c_rankval)-subtract]]))
-                # gets index of current rankval, subtracts 1 and reads whats at that index
-                # gets that role id and then removes it
+                await self.who.remove_roles(await get_role(self.who,c_rankval_id[findc_rank(self.old_rankval)]))
             except:
                 pass
                 # there is no such old c rank

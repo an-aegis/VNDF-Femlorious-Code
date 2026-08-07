@@ -8,10 +8,13 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
+# v0.6.1
+
 import discord
 from discord.ext import commands
 from VNDFHelper import get_role
 from VNDFRank import rank
+import traceback
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -30,7 +33,7 @@ async def promote(interaction: discord.Interaction, who:discord.Member, by:int):
     # it is important to note that get_role uses the first argument to get the user guild
     # it does not matter if the user actually has the role
     if await get_role(who, FM) in caller_roles:
-        limit = 20 # O-10
+        limit = 21 # O-10
     elif await get_role(who, C2) in caller_roles:
         limit = 1 # E-1
     elif await get_role(who, C3) in caller_roles:
@@ -55,10 +58,23 @@ async def promote(interaction: discord.Interaction, who:discord.Member, by:int):
         await target.send(f"<@{who.id}> was promoted to {human.rankval} (from {human.old_rankval}) by <@{interaction.user.id}>")
         
     except Exception as e:
+        print(traceback.format_exc())
         await interaction.response.send_message(f"Error: `{e}`", ephemeral=True)
         await target.send(f"<@{who.id}> had a failed promotion/demotion from user <@{interaction.user.id}>\nError: `{e}`")
 
-
+@bot.tree.command(name = "ssu", description = "the supreme act of courage is to host")
+async def host(interaction: discord.Interaction, password:str):
+    status_channel = bot.get_channel(1534948722062921908) # test status channel
+    password_channel = bot.get_channel(1535337616726040689) # password share channel
+    
+    channel = bot.get_channel(1535337616726040689)
+    messages = channel.history(limit=500)
+    async for message in messages:
+        await message.delete()
+    
+    await status_channel.send(f"<@&1534961648920563762> holy shit <@{interaction.user.id}> is hosting\n\n-# cant find it? join the steam group, you can find someone to join off of there https://steamcommunity.com/chat/invite/eOznIFhN")
+    await password_channel.send(f"The password is: `{password}`\n\nYes you need to copy the capitalization")
+    
 @bot.event
 async def on_ready():
     await bot.tree.sync()

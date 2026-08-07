@@ -8,7 +8,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-# v0.6.1
+# v0.6.1.2
 
 import discord
 from discord.ext import commands
@@ -64,17 +64,35 @@ async def promote(interaction: discord.Interaction, who:discord.Member, by:int):
 
 @bot.tree.command(name = "ssu", description = "the supreme act of courage is to host")
 async def host(interaction: discord.Interaction, password:str):
-    status_channel = bot.get_channel(1534948722062921908) # test status channel
-    password_channel = bot.get_channel(1535337616726040689) # password share channel
+    if await get_role(interaction.user,1534948522674356234) in interaction.user.roles:
+        status_channel = bot.get_channel(1534948734670995566) # status channel
+        password_channel = bot.get_channel(1535337616726040689) # password share channel
     
-    channel = bot.get_channel(1535337616726040689)
-    messages = channel.history(limit=500)
-    async for message in messages:
-        await message.delete()
+        messages = password_channel.history(limit=500)
+        async for message in messages:
+            await message.delete()
     
-    await status_channel.send(f"<@&1534961648920563762> holy shit <@{interaction.user.id}> is hosting\n\n-# cant find it? join the steam group, you can find someone to join off of there https://steamcommunity.com/chat/invite/eOznIFhN")
-    await password_channel.send(f"The password is: `{password}`\n\nYes you need to copy the capitalization")
+        await status_channel.send(f"<@&1534961648920563762> holy shit <@{interaction.user.id}> is hosting\n\n-# cant find it? join the steam group, you can find someone to join off of there https://steamcommunity.com/chat/invite/eOznIFhN")
+        await password_channel.send(f"The password is: `{password}`\n\nYes you need to copy the capitalization")
+        await interaction.response.send_message("Sucessful hosting", ephemeral=True)
+    else:
+        await interaction.response.send_message("You cannot host :/", ephemeral=True)
+
+@bot.tree.command(name = "ssd", description = "the supreme act of courage is to host (and then give up)")
+async def unhost(interaction: discord.Interaction):
+    if await get_role(interaction.user,1534948522674356234) in interaction.user.roles:
+        status_channel = bot.get_channel(1534948734670995566) # status channel
+        password_channel = bot.get_channel(1535337616726040689) # password share channel
     
+        messages = password_channel.history(limit=500)
+        async for message in messages:
+            await message.delete()
+        
+        await status_channel.send(f"SSD")
+        await interaction.response.send_message("Sucessful ssd", ephemeral=True)
+    else:
+        await interaction.response.send_message("You cannot ssd :/", ephemeral=True)
+
 @bot.event
 async def on_ready():
     await bot.tree.sync()

@@ -1,4 +1,4 @@
-# VNDFHelpers.py
+# VNDFHelper.py
 
 class ApiError(Exception):
     pass
@@ -45,6 +45,13 @@ rankval_id = {
     "O-9": 1534948463094005841,
     
     "O-10": 1534948462100217906,
+    }
+c_rankval_id = {
+    "C0": 1534948460984402040,
+    "C1": 1534948458689986652,
+    "C2": 1534948457704329266,
+    "C3": 1534948456572125365,
+    "C4": 1534948455041073265
     }
 
 def findname(rankval: str): # this could be a dict, but i felt like a function was prettier
@@ -106,7 +113,7 @@ def hunt_for_rankval(roles:list) -> str:
                 rankfound = True
                 break
         
-        if rankfound:
+        if rankfound and "role" in globals():
             return id_rankval[role.id]
         else:
             raise ApiError("No rank was able to be found for the target")

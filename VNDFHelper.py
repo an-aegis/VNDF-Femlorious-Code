@@ -1,4 +1,5 @@
 # VNDFHelper.py
+# V0.6
 
 class ApiError(Exception):
     pass
@@ -113,9 +114,23 @@ def hunt_for_rankval(roles:list) -> str:
                 rankfound = True
                 break
         
-        if rankfound and "role" in globals():
+        if rankfound:
             return id_rankval[role.id]
         else:
             raise ApiError("No rank was able to be found for the target")
     else:
         raise ApiError("Member roles were not found")
+
+def findc_rank(rankval: str):
+    if rankval in ["E-1","E-2","E-3","E-4"]:
+        return "C0"
+    elif rankval in ["E-5","E-6","E-7"]:
+        return "C1"
+    elif rankval in ["E-8","E-9","E-10","O-1","O-2"]:
+        return "C2"
+    elif rankval in ["O-3","O-4","O-5","O-6"]:
+        return "C3"
+    elif rankval in ["O-7","O-8","O-9","O-10"]:
+        return "C4"
+    else:
+        return "" # recruit

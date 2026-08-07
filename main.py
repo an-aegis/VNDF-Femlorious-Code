@@ -74,7 +74,7 @@ async def promote(interaction: discord.Interaction, who:discord.Member, by:int):
     C2 = 1534948457704329266
     C3 = 1534948456572125365
     C4 = 1534948455041073265
-    FM = 1534960058813648906-1 # first marshal
+    FM = 1534960058813648906 # first marshal
     caller_roles = interaction.user.roles # interaction.user is secretly member
     
     # it is important to note that get_role uses the first argument to get the user guild

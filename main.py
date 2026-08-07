@@ -93,6 +93,11 @@ async def unhost(interaction: discord.Interaction):
     else:
         await interaction.response.send_message("You cannot ssd :/", ephemeral=True)
 
+@bot.tree.command(name = "poke", description = "poke the bear to see if its awake")
+async def poke(interaction: discord.Interaction):
+    print(f"{interaction.user} just poked me")
+    await interaction.response.send_message("yes... im up", ephemeral=True)
+
 @bot.event
 async def on_ready():
     await bot.tree.sync()

@@ -8,7 +8,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-# V0.7
+# V0.7.0.1
 
 import discord
 from discord.ext import commands
@@ -98,8 +98,8 @@ async def host(interaction: discord.Interaction, password:str):
             await message.delete()
         
         embed = discord.Embed(title="**Casual Hosting**", description=f"_ _\n**HOLY SHIT <@{interaction.user.id}> IS HOSTING**\n\n\n__Server name:__ ---VNDF Military Roleplay | Read Description---\n-# cant find it? join the [steam group](https://steamcommunity.com/chat/invite/eOznIFhN)", color=0x0000ff)
-        await status_channel.send(f"<ignore>",embed=embed) #1534961648920563762
-        await password_channel.send(f"The password is: `{password}`\n\nYes you need to copy the capitalization")
+        await status_channel.send(f"<@&1534961648920563762>",embed=embed) #
+        await password_channel.send(f"The password is: ||```{password}```||\n\nYes, you need to copy the capitalization")
         await interaction.response.send_message("Sucessful hosting", ephemeral=True)
     else:
         await interaction.response.send_message("You cannot host :/", ephemeral=True)

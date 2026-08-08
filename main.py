@@ -8,12 +8,12 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-# v0.6.1.2
+# V0.7
 
 import discord
 from discord.ext import commands
 from VNDFHelper import get_role
-from VNDFRank import rank
+from VNDFNewRank import NewRank
 import traceback
 
 intents = discord.Intents.default()
@@ -24,6 +24,10 @@ bot = commands.Bot(command_prefix="!BANNANAR", intents=intents) # silly prefix t
 
 @bot.tree.command(name = "promote", description = "promote a user by N ranks")
 async def promote(interaction: discord.Interaction, who:discord.Member, by:int):
+    if interaction.user.id == who.id:
+        await interaction.response.send_message("You can't promote yourself", ephemeral=True)
+        return
+    
     C2 = 1534948457704329266
     C3 = 1534948456572125365
     C4 = 1534948455041073265
@@ -40,27 +44,48 @@ async def promote(interaction: discord.Interaction, who:discord.Member, by:int):
         limit = 9 # E-8
     elif await get_role(who, C4) in caller_roles:
         limit = 17 # O-6
+    elif await get_role(who, 1534948496069628084) in caller_roles:
+        announcements_channel = bot.get_channel(1534948733396058222) # announcements channel
+        await announcements_channel.send("@everyone <@interaction.user.id> (A LITERAL E-0) JUST TRIED TO PROMOTE <@who.id>")
     else:
         await interaction.response.send_message(f"You (<@{interaction.user.id}>) have no known promotion authority", ephemeral=True)
         return
     
-    if interaction.user.id == who.id:
-        await interaction.response.send_message("You can't promote yourself", ephemeral=True)
-        return
+    logging_channel = bot.get_channel(1535298462583750746)
     
-    target = bot.get_channel(1535298462583750746) # sorry about the magical number
     try:
-        human = rank(who)
-        await human.promote(by, limit)
+        rank = NewRank(who)
+        rank.limit = limit
+        ids = rank.get_id()
+    
+        EOrank_old = await get_role(who,ids[0])
+        Crank_old = await get_role(who,ids[1]) # E-0 will always get None c rank
+        
+        if by > 0:
+            rank = rank + by
+        if by < 0:
+            rank = rank - abs(by) # this is for the protections built into subtraction that arent in addition
+        ids = rank.get_id()
+        
+        EOrank = await get_role(who,ids[0])
+        Crank = await get_role(who,ids[1]) # E-0 will always get None c rank
+        
+        await who.add_roles(EOrank)
+        await who.remove_roles(EOrank_old)
+        
+        if Crank != Crank_old:
+            if Crank != None:
+                await who.add_roles(Crank)
+            if Crank_old != None:
+                await who.remove_roles(Crank_old)
+        
+        await logging_channel.send(f"<@{interaction.user.id}> promoted <@{who.id}> by {by} ranks, from {EOrank_old	} to {rank.rankval}")
         await interaction.response.send_message(f"{who.nick} promoted by {by} ranks", ephemeral=True)
-        
-        #await target.send(f"<@{who.id}> was {'promoted' if by > 0 else 'demoted'} by {abs(by)} rank{'s' if by != 1 else ''} (to {human.rankval})\nPromoter: <@{interaction.user.id}>")
-        await target.send(f"<@{who.id}> was promoted to {human.rankval} (from {human.old_rankval}) by <@{interaction.user.id}>")
-        
     except Exception as e:
         print(traceback.format_exc())
+        print(f"{interaction.user.nick} just failed to promote {who.nick}. Attempted to promote by {by}")
+        await logging_channel.send(f"<@{who.id}> had a failed promotion/demotion from user <@{interaction.user.id}>\nError: `{e}`")
         await interaction.response.send_message(f"Error: `{e}`", ephemeral=True)
-        await target.send(f"<@{who.id}> had a failed promotion/demotion from user <@{interaction.user.id}>\nError: `{e}`")
 
 @bot.tree.command(name = "ssu", description = "the supreme act of courage is to host")
 async def host(interaction: discord.Interaction, password:str):
@@ -71,8 +96,9 @@ async def host(interaction: discord.Interaction, password:str):
         messages = password_channel.history(limit=500)
         async for message in messages:
             await message.delete()
-    
-        await status_channel.send(f"<@&1534961648920563762> holy shit <@{interaction.user.id}> is hosting\n\n-# cant find it? join the steam group, you can find someone to join off of there https://steamcommunity.com/chat/invite/eOznIFhN")
+        
+        embed = discord.Embed(title="**Casual Hosting**", description=f"_ _\n**HOLY SHIT <@{interaction.user.id}> IS HOSTING**\n\n\n__Server name:__ ---VNDF Military Roleplay | Read Description---\n-# cant find it? join the [steam group](https://steamcommunity.com/chat/invite/eOznIFhN)", color=0x0000ff)
+        await status_channel.send(f"<ignore>",embed=embed) #1534961648920563762
         await password_channel.send(f"The password is: `{password}`\n\nYes you need to copy the capitalization")
         await interaction.response.send_message("Sucessful hosting", ephemeral=True)
     else:
@@ -86,9 +112,10 @@ async def unhost(interaction: discord.Interaction):
     
         messages = password_channel.history(limit=500)
         async for message in messages:
-            await message.delete()
+            await message.delete() # DANGEROUS CODE
         
-        await status_channel.send(f"SSD")
+        embed = discord.Embed(title="**SSD**", description=f"_ _\n:(", color=0xff0000)
+        await status_channel.send(embed=embed)
         await interaction.response.send_message("Sucessful ssd", ephemeral=True)
     else:
         await interaction.response.send_message("You cannot ssd :/", ephemeral=True)

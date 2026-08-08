@@ -1,6 +1,6 @@
 # VNDF-Femlorious-Code
 The open source section of the femlorious bot for the VNDF discord server.
-This currently contains promotion logic only
+This code is only a live demo version of many of the core features. Currently running on ABCKlonen.
 
 
 

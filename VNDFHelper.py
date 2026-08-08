@@ -1,5 +1,5 @@
 # VNDFHelper.py
-# V0.6
+# V0.7
 
 class ApiError(Exception):
     pass
@@ -134,3 +134,13 @@ def findc_rank(rankval: str):
         return "C4"
     else:
         return "" # recruit
+
+def ranktoint(rankval):
+    rankval_list = list(rankval_id)
+    
+    return rankval_list.index(rankval)
+
+def inttorank(ranknum):
+    rankval_list = list(rankval_id)
+    
+    return rankval_list[ranknum]

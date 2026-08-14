@@ -8,7 +8,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-# V0.7.0.3
+# V0.7.1
 
 import discord
 from discord.ext import commands
@@ -20,7 +20,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 
-bot = commands.Bot(command_prefix="!BANNANAR", intents=intents) # silly prefix to stop debug warnings       
+bot = commands.Bot(command_prefix="!BANNANAR", intents=intents) # silly prefix to stop debug warnings
 
 @bot.tree.command(name = "promote", description = "promote a user by N ranks")
 async def promote(interaction: discord.Interaction, who:discord.Member, by:int, publicly_report_here:bool = False, joke:bool = False):
@@ -61,7 +61,10 @@ async def promote(interaction: discord.Interaction, who:discord.Member, by:int, 
     
     logging_channel = bot.get_channel(1535298462583750746)
     
+    
     try:
+        if by == 0:
+            raise ValueError("Cannot demote by 0")
         rank = NewRank(who)
         rank.limit = limit
         ids = rank.get_id()
@@ -87,30 +90,43 @@ async def promote(interaction: discord.Interaction, who:discord.Member, by:int, 
             if Crank_old != None:
                 await who.remove_roles(Crank_old)
         
-        await logging_channel.send(f"<@{interaction.user.id}> promoted <@{who.id}> by {by} ranks, from {EOrank_old} to {rank.rankval}")
-        await interaction.response.send_message(f"{who.nick} promoted by {by} ranks", ephemeral=not publicly_report_here)
+        success_log_embed = discord.Embed(title=f"**Successful {'promotion' if by > 0 else 'demotion'}**", description=f"## <@{who.id}> was {'promoted' if by > 0 else 'demoted'} from {EOrank_old} to {rank.rankval}\n-# **Initiated by <@{interaction.user.id}>**", color=0x00ff00)
+        success_return_embed = discord.Embed(title=f"**Successful {'promotion' if by > 0 else 'demotion'}**", description=f"## {'Promoted' if by > 0 else 'Demoted'} <@{who.id}> to {rank.rankval}", color=0x00ff00)
+        
+        await who.edit(nick=rank.make_name())
+        await logging_channel.send(embed = success_log_embed)
+        await interaction.response.send_message(embed=success_return_embed, ephemeral=not publicly_report_here)
     except Exception as e:
         print(traceback.format_exc())
+        
+        fail_log_embed = discord.Embed(title="**ERROR**", description=f"## <@{who.id}> could not be {'promoted' if by > 0 else 'demoted'}\n-# **Initiated by <@{interaction.user.id}>**\n-# Error: `{e}`\n\n:(", color=0xff0000)
+        fail_return_embed = discord.Embed(title= "**ERROR**", description=f"## Could not pomote <@{who.id}>\n-# **Initiated by <@{interaction.user.id}>**\n-# Error: `{e}`\n\n:(", color=0xff0000)
+        
         try:
             if EOrank in who.roles:
                 try:
-                    await logging_channel.send(f"<@{interaction.user.id}> promoted <@{who.id}> by {by} ranks, from {EOrank_old} to {rank.rankval}")
-                    await interaction.response.send_message(f"{who.nick} promoted by {by} ranks", ephemeral=not publicly_report_here)
-                except:
-                    pass
+                    await logging_channel.send(embed = success_log_embed)
+                    await interaction.response.send_message(embed = success_return_embed, ephemeral=not publicly_report_here)
+                except Exception as e:
+                    print(traceback.format_exc())
                     # give up on life, this error handler is fucked
         except:
             print(f"{interaction.user.nick} just failed to promote {who.nick}. Attempted to promote by {by}")
-            await logging_channel.send(f"<@{who.id}> had a failed promotion/demotion from user <@{interaction.user.id}>\nError: `{e}`")
+            await logging_channel.send(embed = fail_log_embed)
         
             try:
-                await interaction.response.send_message(f"Error: `{e}`", ephemeral=True)
-            except:
-                pass
+                await interaction.response.send_message(embed = fail_return_embed, ephemeral=True)
+            except Exception as e:
+                print(traceback.format_exc())
                 # just give up, theres nothing that can be done except stop a hard error
 
 @bot.tree.command(name = "ssu", description = "the supreme act of courage is to host")
 async def host(interaction: discord.Interaction, password:str):
+    if len(password) > 20:
+        fail_return_embed = discord.Embed(title= "**ERROR**", description=f"## Could not ssu\n-# Error: `Password length > 20`\n\n:(", color=0xff0000)
+        await interaction.response.send_message(embed = fail_return_embed, ephemeral=True)
+        return
+    
     if await get_role(interaction.user,1534948522674356234) in interaction.user.roles:
         status_channel = bot.get_channel(1534948734670995566) # status channel
         password_channel = bot.get_channel(1535337616726040689) # password share channel
@@ -149,4 +165,7 @@ async def poke(interaction: discord.Interaction):
 
 @bot.event
 async def on_ready():
+    #target = bot.get_channel(1534948733396058222)
+    #await target.send("Demoting <@725721249652670555> by 100000000000 ranks")
+    #the above lines are for silly stuff
     await bot.tree.sync()

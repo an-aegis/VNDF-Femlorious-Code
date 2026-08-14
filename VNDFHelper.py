@@ -1,5 +1,6 @@
 # VNDFHelper.py
-# V0.7
+# V0.7.1
+import re
 
 class ApiError(Exception):
     pass
@@ -80,7 +81,7 @@ def findname(rankval: str): # this could be a dict, but i felt like a function w
         case "E-10":
             return "Command Sergeant"
         case "O-1":
-            return "Lieutenant"
+            return "Lt. "
         case "O-2":
             return "Captain"
         case "O-3":
@@ -144,3 +145,26 @@ def inttorank(ranknum):
     rankval_list = list(rankval_id)
     
     return rankval_list[ranknum]
+
+def namegen(currnick, rankname, rankval, c_rankval):
+    # Brigadier - 2Shots (O-6/C-3)
+    pattern = re.compile(
+        r"-(?:\s*)(?P<username>[^(\r\n]+?)(?=\s*\()"
+        )
+    match = pattern.search(currnick)
+    slash = "/" if rankval != "E-0" else ""
+    if match != None:
+        check = f"{rankname} - {match.group('username')} ({rankval}{slash}{c_rankval})"
+        if len(check) <= 33:
+            return check
+        else:
+            return f"{match.group('username')}({rankval}{slash}{c_rankval})"
+    else:
+        print("bad case")
+        check = f"{rankname} - {currnick} ({rankval}{slash}{c_rankval})"
+        if len(check) <= 32:
+            return check
+        else:
+            return f"{currnick} ({rankval}{slash}{c_rankval})"
+    
+    
